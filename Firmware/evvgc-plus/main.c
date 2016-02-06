@@ -14,7 +14,6 @@
     limitations under the License.
 */
 
-#include "ch.h"
 #include "hal.h"
 
 #include "usbcfg.h"
@@ -42,7 +41,7 @@
 /* Status of the board. */
 uint32_t g_boardStatus = 0;
 /* Main thread termination flag. */
-bool_t g_runMain = TRUE;
+bool g_runMain = TRUE;
 /* I2C error info structure. */
 I2CErrorStruct g_i2cErrorInfo = {0, 0};
 /* Stream data id. */
@@ -64,8 +63,8 @@ static const I2CConfig i2cfg_d2 = {
 SerialUSBDriver SDU1;
 
 /* Binary semaphore indicating that new data is ready to be processed. */
-static BinarySemaphore bsemIMU1DataReady;
-static BinarySemaphore bsemStreamReady;
+static binary_semaphore_t bsemIMU1DataReady;
+static binary_semaphore_t bsemStreamReady;
 
 /* Data streaming buffer. */
 static float dataStream[STREAM_BUFFER_SIZE];
@@ -121,10 +120,10 @@ static void streamUpdateData(PIMUStruct pIMU) {
 /**
  * LED blinker thread. Times are in milliseconds.
  */
-static WORKING_AREA(waBlinkerThread, 64);
-static msg_t BlinkerThread(void *arg) {
+static THD_WORKING_AREA(waBlinkerThread, 64);
+static THD_FUNCTION(BlinkerThread,arg) {
   (void)arg;
-  while (!chThdShouldTerminate()) {
+  while (!chThdShouldTerminateX()) {
     systime_t time;
     if (g_boardStatus & IMU_CALIBRATION_MASK) {
       time = 50;
@@ -135,20 +134,20 @@ static msg_t BlinkerThread(void *arg) {
     chThdSleepMilliseconds(time);
   }
   /* This point may be reached if shut down is requested. */
-  return 0;
+  return;
 }
 
 /**
  * MPU6050 data polling thread. Times are in milliseconds.
  * This thread requests a new data from MPU6050 every 1.5 ms (@666 Hz).
  */
-static WORKING_AREA(waPollMPU6050Thread, 128);
-static msg_t PollMPU6050Thread(void *arg) {
+static THD_WORKING_AREA(waPollMPU6050Thread, 128);
+static THD_FUNCTION(PollMPU6050Thread,arg) {
   systime_t time;
   uint32_t warmUp = 0;
   (void)arg;
 
-  time = chTimeNow();
+  time = chVTGetSystemTime();
   do {
     if (!mpu6050GetNewData(&g_IMU1)) {
       /* Restart I2C2 bus in case of an error. */
@@ -159,7 +158,7 @@ static msg_t PollMPU6050Thread(void *arg) {
     chThdSleepUntil(time += US2ST(1500));
   } while (warmUp++ < WARM_UP_COUNTER_MAX);
 
-  while (!chThdShouldTerminate()) {
+  while (!chThdShouldTerminateX()) {
     if (mpu6050GetNewData(&g_IMU1)) {
       chBSemSignal(&bsemIMU1DataReady);
     } else {
@@ -171,7 +170,7 @@ static msg_t PollMPU6050Thread(void *arg) {
     chThdSleepUntil(time += US2ST(1500));
   }
   /* This point may be reached if shut down is requested. */
-  return 0;
+  return;
 }
 
 /**
@@ -180,13 +179,13 @@ static msg_t PollMPU6050Thread(void *arg) {
  * - This thread is synchronized by PollMPU6050Thread thread.
  * - This thread has the highest priority level.
  */
-static WORKING_AREA(waAttitudeThread, 2048);
-static msg_t AttitudeThread(void *arg) {
+static THD_WORKING_AREA(waAttitudeThread, 2048);
+static THD_FUNCTION(AttitudeThread,arg) {
   (void)arg;
   attitudeInit();
-  while (!chThdShouldTerminate()) {
+  while (!chThdShouldTerminateX()) {
     /* Process IMU1 new data ready event. */
-    if (chBSemWait(&bsemIMU1DataReady) == RDY_OK) {
+    if (chBSemWait(&bsemIMU1DataReady) == MSG_OK) {
       if (g_boardStatus & IMU1_CALIBRATION_MASK) {
         if (imuCalibrate(&g_IMU1, g_boardStatus & IMU1_CALIBRATE_ACCEL)) {
           g_boardStatus &= ~IMU1_CALIBRATION_MASK;
@@ -208,15 +207,15 @@ static msg_t AttitudeThread(void *arg) {
     }
   }
   /* This point may be reached if shut down is requested. */
-  return 0;
+  return;
 }
 
-static WORKING_AREA(waMavlinkHandler, 2048);
-static msg_t MavlinkHandler(void *arg) {
+static THD_WORKING_AREA(waMavlinkHandler, 2048);
+static THD_FUNCTION(MavlinkHandler,arg) {
   (void) arg;
-  while (!chThdShouldTerminate()) {
+  while (!chThdShouldTerminateX()) {
     systime_t time;
-    time = chTimeNow();
+    time = chVTGetSystemTime();
 
     handleStream();
     readMavlinkChannel();
@@ -224,7 +223,7 @@ static msg_t MavlinkHandler(void *arg) {
     chThdSleepUntil(time += MS2ST(1000/MAX_STREAM_RATE_HZ));  //Max stream rate
   }
   /* This point may be reached if shut down is requested. */
-  return 0;
+  return;
 }
 
 /**
@@ -232,10 +231,10 @@ static msg_t MavlinkHandler(void *arg) {
  * @details
  */
 int main(void) {
-  Thread *tpBlinker  = NULL;
-  Thread *tpPoller   = NULL;
-  Thread *tpAttitude = NULL;
-  Thread *tpMavlink  = NULL;
+  thread_t *tpBlinker  = NULL;
+  thread_t *tpPoller   = NULL;
+  thread_t *tpAttitude = NULL;
+  thread_t *tpMavlink  = NULL;
 
   /* System initializations.
    * - HAL initialization, this also initializes the configured device drivers
@@ -267,7 +266,7 @@ int main(void) {
   i2cStart(&I2CD2, &i2cfg_d2);
 
   /* Enables the CRC peripheral clock. */
-  rccEnableCRC(FALSE);
+  rccEnableAHB(RCC_AHBENR_FSMCEN,FALSE);
 
   /* Initialize IMU data structure. */
   imuStructureInit(&g_IMU1, FALSE); // IMU1 on low address.
@@ -288,9 +287,9 @@ int main(void) {
 
   if (g_boardStatus & MPU6050_LOW_DETECTED) {
     /* Creates a taken binary semaphore. */
-    chBSemInit(&bsemIMU1DataReady, TRUE);
+    chBSemObjectInit(&bsemIMU1DataReady, TRUE);
     /* Creates a taken binary semaphore. */
-    chBSemInit(&bsemStreamReady, TRUE);
+    chBSemObjectInit(&bsemStreamReady, TRUE);
 
     /* Creates the MPU6050 polling thread and attitude calculation thread. */
     tpPoller = chThdCreateStatic(waPollMPU6050Thread, sizeof(waPollMPU6050Thread),
@@ -322,7 +321,7 @@ int main(void) {
     telemetryReadSerialData();
     /* Process data stream if ready. */
     if ((g_chnp == (BaseChannel *)&SDU1) && /* USB only; */
-        (chBSemWaitTimeout(&bsemStreamReady, TIME_IMMEDIATE) == RDY_OK)) {
+        (chBSemWaitTimeout(&bsemStreamReady, TIME_IMMEDIATE) == MSG_OK)) {
       telemetryWriteStream(pStream, sizeof(float) * STREAM_BUFFER_SIZE / 2);
     }
     chThdSleepMilliseconds(TELEMETRY_SLEEP_MS);

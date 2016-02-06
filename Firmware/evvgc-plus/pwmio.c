@@ -14,8 +14,8 @@
     limitations under the License.
 */
 
-#include "ch.h"
 #include "hal.h"
+#include "eicu_driver.h"
 
 #include "pwmio.h"
 
@@ -103,10 +103,10 @@
  */
 /* Callback function for ADC conversions. */
 static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n);
-/* Callback function for ICU width calculation. */
-static void icuwidthcb(ICUDriver *icup, icuchannel_t channel);
-/* Callback function for ICU period calculation. */
-static void icuperiodcb(ICUDriver *icup, icuchannel_t channel);
+/* Callback function for EICU width calculation. */
+static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel);
+/* Callback function for EICU period calculation. */
+static void eicuperiodcb(EICUDriver *eicup, eicuchannel_t channel);
 
 /**
  * Default settings for PWM outputs.
@@ -245,43 +245,53 @@ static const ADCConversionGroup adcgrpcfg = {
 };
 
 /**
- * Input capture configuration for ICU2 driver.
+ * Input capture configuration for EICU2 driver.
  *
- * @note ICU drivers used in the firmware are modified ChibiOS
+ * @note EICU drivers used in the firmware are modified ChibiOS
  *       drivers for extended input capture functionality.
  */
-static const ICUConfig icucfg2 = {
-  ICU_INPUT_TYPE_PWM,       /* Driver input type (EDGE, PULSE, PWM).  */
-  1000000,                  /* 1MHz ICU clock frequency.              */
-  {                         /* ICU channel configuration.             */
-    {ICU_INPUT_DISABLED, NULL},           /* CH1 */
-    {ICU_INPUT_ACTIVE_HIGH, icuwidthcb},  /* CH2 */
-    {ICU_INPUT_DISABLED, NULL},           /* CH3 */
-    {ICU_INPUT_DISABLED, NULL}            /* CH4 */
+static const EICU_IC_Settings eicuset2 = {
+    EICU_INPUT_ACTIVE_HIGH,
+    eicuwidthcb
+};
+
+static const EICUConfig eicucfg2 = {
+  1000000,    /* EICU clock frequency in Hz.*/
+  EICU_INPUT_PWM,
+  {
+    NULL,
+    &eicuset2,
+    NULL,
+    NULL,
   },
-  icuperiodcb,              /* Callback for cycle period measurement. */
-  NULL,                     /* Callback for timer overflow.           */
-  0                         /* DIER.                                  */
+  eicuperiodcb,
+  NULL,
+  0
 };
 
 /**
- * Input capture configuration for ICU3 driver.
+ * Input capture configuration for EICU3 driver.
  *
- * @note ICU drivers used in the firmware are modified ChibiOS
+ * @note EICU drivers used in the firmware are modified ChibiOS
  *       drivers for extended input capture functionality.
  */
-static const ICUConfig icucfg3 = {
-  ICU_INPUT_TYPE_PULSE,     /* Driver input type (EDGE, PULSE, PWM).  */
-  1000000,                  /* 1MHz ICU clock frequency.              */
-  {                         /* ICU channel configuration.             */
-    {ICU_INPUT_ACTIVE_HIGH, icuwidthcb},  /* CH1 */
-    {ICU_INPUT_ACTIVE_HIGH, icuwidthcb},  /* CH2 */
-    {ICU_INPUT_DISABLED, NULL},           /* CH3 */
-    {ICU_INPUT_DISABLED, NULL}            /* CH4 */
+static const EICU_IC_Settings eicuset3 = {
+    EICU_INPUT_ACTIVE_HIGH,
+    eicuwidthcb
+};
+
+static const EICUConfig eicucfg3 = {
+  1000000,    /* EICU clock frequency in Hz.*/
+  EICU_INPUT_PULSE,
+  {
+    &eicuset3,
+    &eicuset3,
+    NULL,
+    NULL,
   },
-  NULL,                     /* Callback for cycle period measurement. */
-  NULL,                     /* Callback for timer overflow.           */
-  0                         /* DIER.                                  */
+  eicuperiodcb,
+  NULL,
+  0
 };
 
 /**
@@ -321,26 +331,26 @@ static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
 
 /**
  * @brief  Callback function for input capture unit.
- * @param  icup - pointer to the input capture driver.
+ * @param  eicup - pointer to the input capture driver.
  * @param  channel - input capture channel triggering the callback.
  * @return none.
  */
-static void icuwidthcb(ICUDriver *icup, icuchannel_t channel) {
-  if (&ICUD2 == icup) {
-    g_inputValues[INPUT_CHANNEL_AUX3] = icuGetWidth(icup, channel);
+static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel) {
+  if (&EICUD2 == eicup) {
+    g_inputValues[INPUT_CHANNEL_AUX3] = eicuGetWidth(eicup, channel);
   } else {
-    g_inputValues[INPUT_CHANNEL_AUX4 + channel] = icuGetWidth(icup, channel);
+    g_inputValues[INPUT_CHANNEL_AUX4 + channel] = eicuGetWidth(eicup, channel);
   }
 }
 
 /**
  * @brief  Callback function for input capture unit.
- * @param  icup - pointer to the input capture driver.
+ * @param  eicup - pointer to the input capture driver.
  * @param  channel - input capture channel triggering the callback.
  * @return none.
  */
-static void icuperiodcb(ICUDriver *icup, icuchannel_t channel) {
-  (void)icup;
+static void eicuperiodcb(EICUDriver *eicup, eicuchannel_t channel) {
+  (void)eicup;
   (void)channel;
 }
 
@@ -670,18 +680,18 @@ void pwmOutputSettingsUpdate(const PPWMOutputStruct pNewSettings) {
 }
 
 /**
- * @brief  Starts the ADC and ICU input drivers.
- * @note   ICU drivers used in the firmware are modified ChibiOS
+ * @brief  Starts the ADC and EICU input drivers.
+ * @note   EICU drivers used in the firmware are modified ChibiOS
  *         drivers for extended input capture functionality.
  * @return none.
  */
 void mixedInputStart(void) {
-  /* Activates the ICU2 and ICU3 drivers. */
-  icuStart(&ICUD2, &icucfg2);
-  icuStart(&ICUD3, &icucfg3);
+  /* Activates the EICU2 and EICU3 drivers. */
+  eicuStart(&EICUD2, &eicucfg2);
+  eicuStart(&EICUD3, &eicucfg3);
   /* Starts continuous pulse width measurements. */
-  icuEnable(&ICUD2);
-  icuEnable(&ICUD3);
+  eicuEnable(&EICUD2);
+  eicuEnable(&EICUD3);
 
   /* Activates the ADC1 driver. */
   adcStart(&ADCD1, NULL);
@@ -690,12 +700,12 @@ void mixedInputStart(void) {
 }
 
 /**
- * @brief  Stops the ADC and ICU input drivers.
+ * @brief  Stops the ADC and EICU input drivers.
  * @return none.
  */
 void mixedInputStop(void) {
-  icuStop(&ICUD2);
-  icuStop(&ICUD3);
+  eicuStop(&EICUD2);
+  eicuStop(&EICUD3);
   adcStop(&ADCD1);
 }
 

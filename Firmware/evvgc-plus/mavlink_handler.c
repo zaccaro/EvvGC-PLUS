@@ -1,4 +1,3 @@
-#include "ch.h"
 #include "hal.h"
 
 #include "attitude.h"
@@ -25,7 +24,7 @@ static uint8_t mavBuff[64];
 static uint8_t streamRates[NUM_STREAMS] = {0};
 static uint8_t stream_tics[NUM_STREAMS] = {255};
 
-bool_t stream_trigger(streams stream_num) {
+bool stream_trigger(streams stream_num) {
   if (stream_num >= NUM_STREAMS) {
     return 0;
   }
@@ -96,7 +95,7 @@ void handleStream(void) {
   if(stream_trigger(STREAM_EXTRA1)) {
     float RPY[3];
     Quaternion2RPY(g_IMU1.rpy, RPY);
-    mavlink_msg_attitude_pack(mavlink_sys.sysid, mavlink_sys.compid, &msg_s, MS2ST(chTimeNow()),
+    mavlink_msg_attitude_pack(mavlink_sys.sysid, mavlink_sys.compid, &msg_s, MS2ST(chVTGetSystemTime()),
         g_IMU1.rpy[1], g_IMU1.rpy[0], g_IMU1.rpy[2], .0f, .0f, .0f);
     uint16_t len = mavlink_msg_to_send_buffer(buf, &msg_s);
     chnWrite(&SD4, buf, len);
@@ -108,7 +107,7 @@ void handleStream(void) {
 
   if(stream_trigger(STREAM_RAW_IMU)) {
     //TODO: Have to output RAW data.
-    mavlink_msg_raw_imu_pack(mavlink_sys.sysid, mavlink_sys.compid, &msg_s, MS2ST(chTimeNow()),
+    mavlink_msg_raw_imu_pack(mavlink_sys.sysid, mavlink_sys.compid, &msg_s, MS2ST(chVTGetSystemTime()),
         (int16_t)g_IMU1.accelData[0], (int16_t)g_IMU1.accelData[1], (int16_t)g_IMU1.accelData[2] ,
         (int16_t)g_IMU1.gyroData[0], (int16_t)g_IMU1.gyroData[1], (int16_t)g_IMU1.gyroData[2],
         0, 0, 0);

@@ -17,6 +17,7 @@
 #ifndef _TELEMETRY_H_
 #define _TELEMETRY_H_
 
+
 /* Console input/output channel. */
 extern BaseChannel *g_chnp;
 

@@ -31,7 +31,6 @@
     Pitch (X) then Roll (Y) and then Yaw (Z).
 */
 
-#include "ch.h"
 #include "hal.h"
 
 #include "pwmio.h"

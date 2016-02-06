@@ -14,7 +14,6 @@
     limitations under the License.
 */
 
-#include "ch.h"
 #include "hal.h"
 
 #include "mpu6050.h"
@@ -61,7 +60,7 @@ typedef struct tagMessage {
 /* Board status variable. */
 extern uint32_t g_boardStatus;
 /* Main thread termination flag. */
-extern bool_t g_runMain;
+extern bool g_runMain;
 /* I2C error info structure. */
 extern I2CErrorStruct g_i2cErrorInfo;
 /* Stream data id. */
@@ -87,6 +86,7 @@ static uint8_t *msgPos = (uint8_t *)&msg;
 static Message debugMsg;
 
 static size_t bytesRequired = TELEMETRY_MSG_HDR_SIZE;
+
 
 /**
  * @brief  Calculates CRC32 checksum of received data buffer.
@@ -361,7 +361,7 @@ static void telemetryReadSerialDataResync(uint8_t len) {
 void telemetryReadSerialData(void) {
   chSysLock();
   /* The following function must be called from within a system lock zone. */
-  size_t bytesAvailable = chnBytesAvailable(g_chnp);
+  size_t bytesAvailable = chIQGetEmptyI(&((SerialDriver *)(g_chnp))->iqueue);
   chSysUnlock();
 
   while (bytesAvailable) {

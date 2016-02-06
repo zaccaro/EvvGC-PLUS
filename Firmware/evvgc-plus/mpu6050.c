@@ -21,7 +21,6 @@
  * and then begin reading process.
  */
 
-#include "ch.h"
 #include "hal.h"
 
 #include "misc.h"
@@ -214,7 +213,7 @@ uint8_t imuCalibrate(PIMUStruct pIMU, uint8_t fCalibrateAcc) {
  *         0 - if initialization failed.
  */
 uint8_t mpu6050Init(uint8_t addr) {
-  msg_t status = RDY_OK;
+  msg_t status = MSG_OK;
 
   /* Reset all MPU6050 registers to their default values */
   mpu6050TXData[0] = MPU6050_PWR_MGMT_1;  // Start register address;
@@ -225,7 +224,7 @@ uint8_t mpu6050Init(uint8_t addr) {
   status = i2cMasterTransmitTimeout(&I2CD2, addr, mpu6050TXData, 2,
     NULL, 0, MS2ST(MPU6050_WRITE_TIMEOUT_MS));
 
-  if (status != RDY_OK) {
+  if (status != MSG_OK) {
     i2cReleaseBus(&I2CD2);
     g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
     if (g_i2cErrorInfo.last_i2c_error) {
@@ -245,7 +244,7 @@ uint8_t mpu6050Init(uint8_t addr) {
   status = i2cMasterTransmitTimeout(&I2CD2, addr, mpu6050TXData, 2,
     NULL, 0, MS2ST(MPU6050_WRITE_TIMEOUT_MS));
 
-  if (status != RDY_OK) {
+  if (status != MSG_OK) {
     i2cReleaseBus(&I2CD2);
     g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
     if (g_i2cErrorInfo.last_i2c_error) {
@@ -270,7 +269,7 @@ uint8_t mpu6050Init(uint8_t addr) {
 
   i2cReleaseBus(&I2CD2);
 
-  if (status != RDY_OK) {
+  if (status != MSG_OK) {
     g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
     if (g_i2cErrorInfo.last_i2c_error) {
       g_i2cErrorInfo.i2c_error_counter++;
@@ -289,7 +288,7 @@ uint8_t mpu6050Init(uint8_t addr) {
  *         0 - if reading failed.
  */
 uint8_t mpu6050GetNewData(PIMUStruct pIMU) {
-  msg_t status = RDY_OK;
+  msg_t status = MSG_OK;
   uint8_t id;
   int16_t mpu6050Data[6];
 
@@ -300,7 +299,7 @@ uint8_t mpu6050GetNewData(PIMUStruct pIMU) {
     mpu6050RXData, 14, MS2ST(MPU6050_READ_TIMEOUT_MS));
   i2cReleaseBus(&I2CD2);
 
-  if (status != RDY_OK) {
+  if (status != MSG_OK) {
     g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
     if (g_i2cErrorInfo.last_i2c_error) {
       g_i2cErrorInfo.i2c_error_counter++;

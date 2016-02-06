@@ -20,7 +20,6 @@
  *   communication with EEPROM chip is impossible.
  */
 
-#include "ch.h"
 #include "hal.h"
 
 #include "mpu6050.h"
@@ -90,7 +89,7 @@ static uint8_t eepromWriteData(const PEEPROMStruct pEEPROM) {
   uint8_t addrOffset;
   size_t numBytes;
   uint8_t eepromTXBuf[EEPROM_24C02_PAGE_SIZE + 1];
-  msg_t status = RDY_OK;
+  msg_t status = MSG_OK;
 
   eepromTXBuf[0] = pEEPROM->addr;
   addrOffset = pEEPROM->addr % EEPROM_24C02_PAGE_SIZE;
@@ -105,7 +104,7 @@ static uint8_t eepromWriteData(const PEEPROMStruct pEEPROM) {
     status = i2cMasterTransmitTimeout(&I2CD2, EEPROM_24C02_ADDR, eepromTXBuf, numBytes + 1,
       NULL, 0, MS2ST(EEPROM_WRITE_TIMEOUT_MS));
     i2cReleaseBus(&I2CD2);
-    if (status != RDY_OK) {
+    if (status != MSG_OK) {
       g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
       if (g_i2cErrorInfo.last_i2c_error) {
         g_i2cErrorInfo.i2c_error_counter++;
@@ -124,7 +123,7 @@ static uint8_t eepromWriteData(const PEEPROMStruct pEEPROM) {
       status = i2cMasterTransmitTimeout(&I2CD2, EEPROM_24C02_ADDR, eepromTXBuf, EEPROM_24C02_PAGE_SIZE + 1,
         NULL, 0, MS2ST(EEPROM_WRITE_TIMEOUT_MS));
       i2cReleaseBus(&I2CD2);
-      if (status != RDY_OK) {
+      if (status != MSG_OK) {
         g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
         if (g_i2cErrorInfo.last_i2c_error) {
           g_i2cErrorInfo.i2c_error_counter++;
@@ -142,7 +141,7 @@ static uint8_t eepromWriteData(const PEEPROMStruct pEEPROM) {
       status = i2cMasterTransmitTimeout(&I2CD2, EEPROM_24C02_ADDR, eepromTXBuf, pEEPROM->dataSize + 1,
         NULL, 0, MS2ST(EEPROM_WRITE_TIMEOUT_MS));
       i2cReleaseBus(&I2CD2);
-      if (status != RDY_OK) {
+      if (status != MSG_OK) {
         g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
         if (g_i2cErrorInfo.last_i2c_error) {
           g_i2cErrorInfo.i2c_error_counter++;
@@ -162,7 +161,7 @@ static uint8_t eepromWriteData(const PEEPROMStruct pEEPROM) {
  *         0 - if write operation fails.
  */
 uint8_t eepromLoadSettings(void) {
-  msg_t status = RDY_OK;
+  msg_t status = MSG_OK;
   uint8_t addr = EEPROM_START_ADDR;
 
   i2cAcquireBus(&I2CD2);
@@ -170,7 +169,7 @@ uint8_t eepromLoadSettings(void) {
     (uint8_t *)&eepromData, sizeof(eepromData), MS2ST(EEPROM_READ_TIMEOUT_MS));
   i2cReleaseBus(&I2CD2);
 
-  if (status != RDY_OK) {
+  if (status != MSG_OK) {
     g_i2cErrorInfo.last_i2c_error = i2cGetErrors(&I2CD2);
     if (g_i2cErrorInfo.last_i2c_error) {
       debugLog("E:eeprom-load");
