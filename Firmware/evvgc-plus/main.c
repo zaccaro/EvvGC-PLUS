@@ -170,7 +170,7 @@ static THD_FUNCTION(PollMPU6050Thread,arg) {
     chThdSleepUntil(time += US2ST(1500));
   }
   /* This point may be reached if shut down is requested. */
-  return;
+  chThdExit((msg_t)0);
 }
 
 /**
@@ -207,7 +207,7 @@ static THD_FUNCTION(AttitudeThread,arg) {
     }
   }
   /* This point may be reached if shut down is requested. */
-  return;
+  chThdExit((msg_t)0);
 }
 
 static THD_WORKING_AREA(waMavlinkHandler, 2048);
@@ -223,7 +223,7 @@ static THD_FUNCTION(MavlinkHandler,arg) {
     chThdSleepUntil(time += MS2ST(1000/MAX_STREAM_RATE_HZ));  //Max stream rate
   }
   /* This point may be reached if shut down is requested. */
-  return;
+  chThdExit((msg_t)0);
 }
 
 /**

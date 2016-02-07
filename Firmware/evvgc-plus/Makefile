@@ -86,12 +86,13 @@ endif
 PROJECT = evvgc_plus
 CHIBIOS = ../../../../chibios161
 CHIBIOS_DRIVERS = $(CHIBIOS)/../ChibiOS-Drivers
+BOARD = ../boards/EVVGC_V1.X
 # Imported source files and paths
 
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f1xx.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/hal/ports/STM32/STM32F1xx/platform.mk
-include $(CHIBIOS)/os/hal/boards/EVVGC_V1.X/board.mk
+include $(BOARD)/board.mk
 include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 include $(CHIBIOS)/os/rt/rt.mk
 include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
@@ -103,7 +104,7 @@ ifeq ($(USE_USB_BL),yes)
   LDSCRIPT= $(STARTUPLD)/STM32F103xC_BL.ld
   USE_OPT += -DUSE_USB_BL
 else
-  LDSCRIPT= $(CHIBIOS)/community/os/common/ports/ARMCMx/compilers/GCC/ld/STM32F103xC.ld
+  LDSCRIPT= STM32F103xC.ld
 endif
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global

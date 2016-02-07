@@ -107,7 +107,8 @@ static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n);
 static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel);
 /* Callback function for EICU period calculation. */
 static void eicuperiodcb(EICUDriver *eicup, eicuchannel_t channel);
-
+/* Callback function for Timer overflow event. */
+static void eicuoverflowcb(EICUDriver *eicup, eicuchannel_t channel);
 /**
  * Default settings for PWM outputs.
  */
@@ -265,7 +266,7 @@ static const EICUConfig eicucfg2 = {
     NULL,
   },
   eicuperiodcb,
-  NULL,
+  eicuoverflowcb,
   0
 };
 
@@ -290,7 +291,7 @@ static const EICUConfig eicucfg3 = {
     NULL,
   },
   eicuperiodcb,
-  NULL,
+  eicuoverflowcb,
   0
 };
 
@@ -350,6 +351,11 @@ static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel) {
  * @return none.
  */
 static void eicuperiodcb(EICUDriver *eicup, eicuchannel_t channel) {
+  (void)eicup;
+  (void)channel;
+}
+
+static void eicuoverflowcb(EICUDriver *eicup, eicuchannel_t channel) {
   (void)eicup;
   (void)channel;
 }
@@ -688,6 +694,7 @@ void pwmOutputSettingsUpdate(const PPWMOutputStruct pNewSettings) {
 void mixedInputStart(void) {
   /* Activates the EICU2 and EICU3 drivers. */
   eicuStart(&EICUD2, &eicucfg2);
+  palTogglePad(GPIOB, GPIOB_LED_A); /*DEBUGGING */
   eicuStart(&EICUD3, &eicucfg3);
   /* Starts continuous pulse width measurements. */
   eicuEnable(&EICUD2);

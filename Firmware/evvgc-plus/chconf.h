@@ -57,6 +57,16 @@
 #endif
 
 /**
+ * @brief   Time delta constant for the tick-less mode.
+ * @note    If this value is zero then the system uses the classic
+ *          periodic tick. This value represents the minimum number
+ *          of ticks that is safe to specify in a timeout directive.
+ *          The value one is not valid, timeouts are rounded up to
+ *          this value.
+ */
+#define CH_CFG_ST_TIMEDELTA                 0 /*2*/
+
+/**
  * @brief   System time counter resolution.
  * @note    Allowed values are 16 or 32 bits.
  */
@@ -149,6 +159,14 @@
  * @{
  */
 /*===========================================================================*/
+/**
+ * @brief   Time Measurement APIs.
+ * @details If enabled then the time measurement APIs are included in
+ *          the kernel.
+ *
+ * @note    The default is @p TRUE.
+ */
+#define CH_CFG_USE_TM                       TRUE
 
 /**
  * @brief   Threads registry APIs.

@@ -36,7 +36,8 @@
 /*
  * MCU type, supported types are defined in ./chibios_2.6.7/hal/platforms/hal_lld.h.
  */
-#define STM32F10X_HD
+
+#define STM32F103xE
 
 /*
  * IO pins assignments.
