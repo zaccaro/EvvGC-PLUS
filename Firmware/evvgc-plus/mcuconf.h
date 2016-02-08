@@ -13,7 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-#include "drivers_conf.h"
+
 #define STM32F103_MCUCONF
 
 /*
@@ -112,6 +112,7 @@
 /*
  * ICU driver system settings.
  */
+/*
 #define STM32_ICU_USE_TIM1                  FALSE
 #define STM32_ICU_USE_TIM2                  FALSE
 #define STM32_ICU_USE_TIM3                  FALSE
@@ -124,7 +125,7 @@
 #define STM32_ICU_TIM4_IRQ_PRIORITY         7
 #define STM32_ICU_TIM5_IRQ_PRIORITY         7
 #define STM32_ICU_TIM8_IRQ_PRIORITY         7
-
+*/
 /*
  * PWM driver system settings.
  */
@@ -207,3 +208,8 @@
  * WDG driver system settings.
  */
 #define STM32_WDG_USE_IWDG                  FALSE
+
+/*
+ * header for community drivers.
+ */
+#include "mcuconf_community.h"

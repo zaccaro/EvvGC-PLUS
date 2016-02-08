@@ -64,7 +64,7 @@
  *          The value one is not valid, timeouts are rounded up to
  *          this value.
  */
-#define CH_CFG_ST_TIMEDELTA                 0 /*2*/
+#define CH_CFG_ST_TIMEDELTA                 0 //2
 
 /**
  * @brief   System time counter resolution.

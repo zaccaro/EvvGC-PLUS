@@ -321,7 +321,7 @@
  * @note    The default is 2 buffers.
  */
 #if !defined(SERIAL_USB_BUFFERS_NUMBER) || defined(__DOXYGEN__)
-#define SERIAL_USB_BUFFERS_NUMBER   2
+#define SERIAL_USB_BUFFERS_NUMBER   2 //2
 #endif
 
 /*===========================================================================*/
@@ -375,6 +375,12 @@
 #if !defined(USB_USE_WAIT) || defined(__DOXYGEN__)
 #define USB_USE_WAIT                TRUE
 #endif
+
+/*===========================================================================*/
+/* Community drivers's includes                                              */
+/*===========================================================================*/
+
+#include "halconf_community.h"
 
 #endif /* _HALCONF_H_ */
 

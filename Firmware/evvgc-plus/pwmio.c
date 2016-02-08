@@ -15,7 +15,7 @@
 */
 
 #include "hal.h"
-#include "eicu_driver.h"
+#include "eicu.h"
 
 #include "pwmio.h"
 
@@ -104,11 +104,7 @@
 /* Callback function for ADC conversions. */
 static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n);
 /* Callback function for EICU width calculation. */
-static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel);
-/* Callback function for EICU period calculation. */
-static void eicuperiodcb(EICUDriver *eicup, eicuchannel_t channel);
-/* Callback function for Timer overflow event. */
-static void eicuoverflowcb(EICUDriver *eicup, eicuchannel_t channel);
+static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel, uint32_t w, uint32_t p);
 /**
  * Default settings for PWM outputs.
  */
@@ -251,22 +247,20 @@ static const ADCConversionGroup adcgrpcfg = {
  * @note EICU drivers used in the firmware are modified ChibiOS
  *       drivers for extended input capture functionality.
  */
-static const EICU_IC_Settings eicuset2 = {
+static const EICUChannelConfig eicuset2 = {
     EICU_INPUT_ACTIVE_HIGH,
+    EICU_INPUT_BOTH,
     eicuwidthcb
 };
 
 static const EICUConfig eicucfg2 = {
   1000000,    /* EICU clock frequency in Hz.*/
-  EICU_INPUT_PWM,
   {
     NULL,
     &eicuset2,
     NULL,
     NULL,
   },
-  eicuperiodcb,
-  eicuoverflowcb,
   0
 };
 
@@ -276,22 +270,20 @@ static const EICUConfig eicucfg2 = {
  * @note EICU drivers used in the firmware are modified ChibiOS
  *       drivers for extended input capture functionality.
  */
-static const EICU_IC_Settings eicuset3 = {
+static const EICUChannelConfig eicuset3 = {
     EICU_INPUT_ACTIVE_HIGH,
+    EICU_INPUT_PULSE,
     eicuwidthcb
 };
 
 static const EICUConfig eicucfg3 = {
   1000000,    /* EICU clock frequency in Hz.*/
-  EICU_INPUT_PULSE,
   {
     &eicuset3,
     &eicuset3,
     NULL,
     NULL,
   },
-  eicuperiodcb,
-  eicuoverflowcb,
   0
 };
 
@@ -336,11 +328,12 @@ static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
  * @param  channel - input capture channel triggering the callback.
  * @return none.
  */
-static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel) {
+static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel, uint32_t w, uint32_t p) {
+  (void)p;
   if (&EICUD2 == eicup) {
-    g_inputValues[INPUT_CHANNEL_AUX3] = eicuGetWidth(eicup, channel);
+    g_inputValues[INPUT_CHANNEL_AUX3] = w;
   } else {
-    g_inputValues[INPUT_CHANNEL_AUX4 + channel] = eicuGetWidth(eicup, channel);
+    g_inputValues[INPUT_CHANNEL_AUX4 + channel] = w;
   }
 }
 
@@ -350,15 +343,6 @@ static void eicuwidthcb(EICUDriver *eicup, eicuchannel_t channel) {
  * @param  channel - input capture channel triggering the callback.
  * @return none.
  */
-static void eicuperiodcb(EICUDriver *eicup, eicuchannel_t channel) {
-  (void)eicup;
-  (void)channel;
-}
-
-static void eicuoverflowcb(EICUDriver *eicup, eicuchannel_t channel) {
-  (void)eicup;
-  (void)channel;
-}
 
 /**
  * @brief  Calculates value for DTG (dead-time generator) bits of BDTR register.
@@ -694,7 +678,6 @@ void pwmOutputSettingsUpdate(const PPWMOutputStruct pNewSettings) {
 void mixedInputStart(void) {
   /* Activates the EICU2 and EICU3 drivers. */
   eicuStart(&EICUD2, &eicucfg2);
-  palTogglePad(GPIOB, GPIOB_LED_A); /*DEBUGGING */
   eicuStart(&EICUD3, &eicucfg3);
   /* Starts continuous pulse width measurements. */
   eicuEnable(&EICUD2);

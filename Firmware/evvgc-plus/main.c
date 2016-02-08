@@ -60,7 +60,7 @@ static const I2CConfig i2cfg_d2 = {
 };
 
 /* Virtual serial port over USB. */
-SerialUSBDriver SDU1;
+/*SerialUSBDriver SDU1;*/
 
 /* Binary semaphore indicating that new data is ready to be processed. */
 static binary_semaphore_t bsemIMU1DataReady;
@@ -134,7 +134,7 @@ static THD_FUNCTION(BlinkerThread,arg) {
     chThdSleepMilliseconds(time);
   }
   /* This point may be reached if shut down is requested. */
-  return;
+  chThdExit(MSG_OK);
 }
 
 /**
@@ -170,7 +170,7 @@ static THD_FUNCTION(PollMPU6050Thread,arg) {
     chThdSleepUntil(time += US2ST(1500));
   }
   /* This point may be reached if shut down is requested. */
-  chThdExit((msg_t)0);
+  chThdExit(MSG_OK);
 }
 
 /**
@@ -207,7 +207,7 @@ static THD_FUNCTION(AttitudeThread,arg) {
     }
   }
   /* This point may be reached if shut down is requested. */
-  chThdExit((msg_t)0);
+  chThdExit(MSG_OK);
 }
 
 static THD_WORKING_AREA(waMavlinkHandler, 2048);
@@ -223,7 +223,7 @@ static THD_FUNCTION(MavlinkHandler,arg) {
     chThdSleepUntil(time += MS2ST(1000/MAX_STREAM_RATE_HZ));  //Max stream rate
   }
   /* This point may be reached if shut down is requested. */
-  chThdExit((msg_t)0);
+  chThdExit(MSG_OK);
 }
 
 /**
@@ -243,6 +243,7 @@ int main(void) {
    *   RTOS is active.
    */
   halInit();
+  osalInit();
   chSysInit();
 
   /* Initializes a serial-over-USB CDC driver. */
@@ -349,7 +350,7 @@ int main(void) {
   usbDisconnectBus(serusbcfg.usbp);
   sduStop(&SDU1);               /* Stopping serial-over-USB CDC driver.     */
 
-  chSysDisable();
+  osalSysDisable();
 
   /* Reset of all peripherals. */
   rccResetAPB1(0xFFFFFFFF);

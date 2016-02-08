@@ -85,18 +85,17 @@ endif
 # Define project name here
 PROJECT = evvgc_plus
 CHIBIOS = ../../../../chibios161
-CHIBIOS_DRIVERS = $(CHIBIOS)/../ChibiOS-Drivers
+CHIBIOS_CONTRIB = $(CHIBIOS)/../ChibiOS-Contrib
 BOARD = ../boards/EVVGC_V1.X
 # Imported source files and paths
 
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f1xx.mk
-include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/hal/ports/STM32/STM32F1xx/platform.mk
+include $(CHIBIOS_CONTRIB)/os/hal/hal.mk
+include $(CHIBIOS_CONTRIB)/os/hal/ports/STM32/STM32F1xx/platform.mk
 include $(BOARD)/board.mk
 include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 include $(CHIBIOS)/os/rt/rt.mk
 include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk
-include $(CHIBIOS_DRIVERS)/drivers.mk
 
 
 # Define linker script file here
@@ -117,7 +116,6 @@ CSRC = $(STARTUPSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
        $(TESTSRC) \
-       $(STM32DRIVERSRC) \
        attitude.c \
        eeprom.c \
        main.c \
@@ -153,12 +151,12 @@ TCSRC =
 TCPPSRC =
 
 # List ASM source files here
-ASMSRC = $(PORTASM) $(STARTUPASM) $(OSALASM)
+ASMSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
-INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
+INCDIR = $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
-         mavlink/common $(STARTUPINC) $(OSALINC) \
-         $(STM32DRIVERINC)
+         $(CHIBIOS)/os/various  mavlink/common
+
 #
 # Project, sources and paths
 ##############################################################################

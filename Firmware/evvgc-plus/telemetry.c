@@ -359,10 +359,11 @@ static void telemetryReadSerialDataResync(uint8_t len) {
  * @return none.
  */
 void telemetryReadSerialData(void) {
-  chSysLock();
+  osalSysLock();
   /* The following function must be called from within a system lock zone. */
-  size_t bytesAvailable = chIQGetEmptyI(&((SerialDriver *)(g_chnp))->iqueue);
-  chSysUnlock();
+  size_t bytesAvailable = chIQGetFullI(&((SerialDriver *)&g_chnp)->iqueue);
+  //size_t bytesAvailable = chIQGetEmptyI(&((SerialDriver *)(g_chnp))->iqueue);
+  osalSysUnlock();
 
   while (bytesAvailable) {
     if (bytesAvailable >= bytesRequired) {
