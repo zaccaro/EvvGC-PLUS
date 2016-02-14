@@ -84,7 +84,7 @@ endif
 
 # Define project name here
 PROJECT = evvgc_plus
-CHIBIOS = ../../../../chibios161
+CHIBIOS = ../../../../chibios30
 CHIBIOS_CONTRIB = $(CHIBIOS)/../ChibiOS-Contrib
 BOARD = ../boards/EVVGC_V1.X
 # Imported source files and paths

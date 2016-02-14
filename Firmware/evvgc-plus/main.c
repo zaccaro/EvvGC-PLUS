@@ -48,6 +48,8 @@ I2CErrorStruct g_i2cErrorInfo = {0, 0};
 uint8_t g_streamDataID = 0;
 /* Data streaming index. */
 uint8_t g_streamIdx = 0;
+/* LED B flash req */
+bool led_b = false;
 
 /**
  * Local variables
@@ -118,10 +120,10 @@ static void streamUpdateData(PIMUStruct pIMU) {
 }
 
 /**
- * LED blinker thread. Times are in milliseconds.
+ * Green LED blinker thread. Times are in milliseconds.
  */
-static THD_WORKING_AREA(waBlinkerThread, 64);
-static THD_FUNCTION(BlinkerThread,arg) {
+static THD_WORKING_AREA(waBlinkerThread_A, 64);
+static THD_FUNCTION(BlinkerThread_A,arg) {
   (void)arg;
   while (!chThdShouldTerminateX()) {
     systime_t time;
@@ -136,6 +138,25 @@ static THD_FUNCTION(BlinkerThread,arg) {
   /* This point may be reached if shut down is requested. */
   chThdExit(MSG_OK);
 }
+
+/**
+ * Red LED blinker thread. Times are in milliseconds.
+ */
+static THD_WORKING_AREA(waBlinkerThread_B, 64);
+static THD_FUNCTION(BlinkerThread_B,arg) {
+  (void)arg;
+  systime_t time = 20;
+  while (!chThdShouldTerminateX()) {
+    if (led_b) {
+    palTogglePad(GPIOA, GPIOA_LED_B);
+    }
+    else {palClearPad(GPIOA, GPIOA_LED_B);}
+    chThdSleepMilliseconds(time);
+  }
+  /* This point may be reached if shut down is requested. */
+  chThdExit(MSG_OK);
+}
+
 
 /**
  * MPU6050 data polling thread. Times are in milliseconds.
@@ -231,7 +252,8 @@ static THD_FUNCTION(MavlinkHandler,arg) {
  * @details
  */
 int main(void) {
-  thread_t *tpBlinker  = NULL;
+  thread_t *tpBlinker_A  = NULL;
+  thread_t *tpBlinker_B  = NULL;
   thread_t *tpPoller   = NULL;
   thread_t *tpAttitude = NULL;
   thread_t *tpMavlink  = NULL;
@@ -267,7 +289,7 @@ int main(void) {
   i2cStart(&I2CD2, &i2cfg_d2);
 
   /* Enables the CRC peripheral clock. */
-  rccEnableAHB(RCC_AHBENR_FSMCEN,FALSE);
+  rccEnableAHB(RCC_AHBENR_CRCEN,FALSE);
 
   /* Initialize IMU data structure. */
   imuStructureInit(&g_IMU1, FALSE); // IMU1 on low address.
@@ -307,9 +329,12 @@ int main(void) {
 
   g_chnp = (BaseChannel *)&SDU1; //Default to USB for GUI
 
-  /* Creates the blinker thread. */
-  tpBlinker = chThdCreateStatic(waBlinkerThread, sizeof(waBlinkerThread),
-    LOWPRIO, BlinkerThread, NULL);
+  /* Creates the blinker threads. */
+  tpBlinker_A = chThdCreateStatic(waBlinkerThread_A, sizeof(waBlinkerThread_A),
+    LOWPRIO, BlinkerThread_A, NULL);
+
+  tpBlinker_B = chThdCreateStatic(waBlinkerThread_B, sizeof(waBlinkerThread_B),
+    LOWPRIO, BlinkerThread_B, NULL);
 
   tpMavlink = chThdCreateStatic(waMavlinkHandler, sizeof(waMavlinkHandler),
     NORMALPRIO - 1, MavlinkHandler, NULL);
@@ -337,9 +362,13 @@ int main(void) {
     chThdTerminate(tpPoller);   /* Requesting termination.                  */
     chThdWait(tpPoller);        /* Waiting for the actual termination.      */
   }
-  if (tpBlinker != NULL) {
-    chThdTerminate(tpBlinker);  /* Requesting termination.                  */
-    chThdWait(tpBlinker);       /* Waiting for the actual termination.      */
+  if (tpBlinker_A != NULL) {
+    chThdTerminate(tpBlinker_A);  /* Requesting termination.                  */
+    chThdWait(tpBlinker_A);       /* Waiting for the actual termination.      */
+  }
+  if (tpBlinker_B != NULL) {
+    chThdTerminate(tpBlinker_B);  /* Requesting termination.                  */
+    chThdWait(tpBlinker_B);       /* Waiting for the actual termination.      */
   }
 
   mixedInputStop();             /* Stopping mixed input devices.            */

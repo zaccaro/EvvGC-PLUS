@@ -1,0 +1,13 @@
+INPUT(
+./release/main.o
+./release/mainwindow.o
+./release/glwidget.o
+./release/serialthread.o
+./release/crc32.o
+./release/qcustomplot.o
+./release/qrc_textures.o
+./release/moc_mainwindow.o
+./release/moc_glwidget.o
+./release/moc_serialthread.o
+./release/moc_qcustomplot.o
+);

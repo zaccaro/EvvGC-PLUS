@@ -67,6 +67,8 @@ extern I2CErrorStruct g_i2cErrorInfo;
 extern uint8_t g_streamDataID;
 /* Data streaming index. */
 extern uint8_t g_streamIdx;
+/* Led B request */
+extern bool led_b;
 /* Console input/output handle. */
 BaseChannel *g_chnp = NULL;
 
@@ -86,7 +88,6 @@ static uint8_t *msgPos = (uint8_t *)&msg;
 static Message debugMsg;
 
 static size_t bytesRequired = TELEMETRY_MSG_HDR_SIZE;
-
 
 /**
  * @brief  Calculates CRC32 checksum of received data buffer.
@@ -361,14 +362,15 @@ static void telemetryReadSerialDataResync(uint8_t len) {
 void telemetryReadSerialData(void) {
   osalSysLock();
   /* The following function must be called from within a system lock zone. */
-  size_t bytesAvailable = chIQGetFullI(&((SerialDriver *)&g_chnp)->iqueue);
-  //size_t bytesAvailable = chIQGetEmptyI(&((SerialDriver *)(g_chnp))->iqueue);
+  size_t bytesAvailable = chIQGetFullI(&((SerialDriver *)g_chnp)->iqueue);
   osalSysUnlock();
+  led_b = false;
 
   while (bytesAvailable) {
     if (bytesAvailable >= bytesRequired) {
       if (bytesRequired > 0) {
-        palTogglePad(GPIOA, GPIOA_LED_B);
+//        palTogglePad(GPIOA, GPIOA_LED_B);
+        led_b = true;
         chnRead(g_chnp, msgPos, bytesRequired);
         msgPos += bytesRequired;
         bytesAvailable -= bytesRequired;
@@ -398,11 +400,16 @@ void telemetryReadSerialData(void) {
       if (msg.crc == telemetryGetCRC32Checksum(&msg)) {
         telemetryProcessCommand(&msg);
       } else {
-        uint8_t i;
-        for (i =0; i < 50; i++) {
-          palTogglePad(GPIOA, GPIOA_LED_B);
-          chThdSleepMilliseconds(US2ST(10500));
-        }
+//        uint8_t i;
+ //       for (i =0; i < 50; i++) {
+ //         palTogglePad(GPIOA, GPIOA_LED_B);
+ //         chThdSleepMilliseconds(10.5);
+ //       }
+
+          led_b = true;
+          chThdSleepMilliseconds(500);
+          led_b = false;
+
       }
 
       /* Read another packet...*/

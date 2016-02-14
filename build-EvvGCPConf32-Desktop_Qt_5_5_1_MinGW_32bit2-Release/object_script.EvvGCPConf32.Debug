@@ -1,0 +1,13 @@
+INPUT(
+./debug/main.o
+./debug/mainwindow.o
+./debug/glwidget.o
+./debug/serialthread.o
+./debug/crc32.o
+./debug/qcustomplot.o
+./debug/qrc_textures.o
+./debug/moc_mainwindow.o
+./debug/moc_glwidget.o
+./debug/moc_serialthread.o
+./debug/moc_qcustomplot.o
+);
