@@ -24,4 +24,26 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>EVVGC_V1.X</name>
+			<type>2</type>
+			<locationURI>BOARDS/EVVGC_V1.X</locationURI>
+		</link>
+		<link>
+			<name>os</name>
+			<type>2</type>
+			<locationURI>CHIBIOS/os</locationURI>
+		</link>
+	</linkedResources>
+	<variableList>
+		<variable>
+			<name>BOARDS</name>
+			<value>$%7BPARENT-4-PROJECT_LOC%7D/boards</value>
+		</variable>
+		<variable>
+			<name>CHIBIOS</name>
+			<value>$%7BPARENT-4-PROJECT_LOC%7D/chibios161</value>
+		</variable>
+	</variableList>
 </projectDescription>

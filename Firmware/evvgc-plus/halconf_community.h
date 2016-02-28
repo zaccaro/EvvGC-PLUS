@@ -49,7 +49,7 @@
  * @brief   Enables the EICU subsystem.
  */
 #if !defined(HAL_USE_EICU) || defined(__DOXYGEN__)
-#define HAL_USE_EICU                TRUE
+#define HAL_USE_EICU                FALSE
 #endif
 
 /**

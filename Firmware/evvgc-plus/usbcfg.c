@@ -235,7 +235,7 @@ static const USBEndpointConfig ep1config = {
   0x0040,
   &ep1instate,
   &ep1outstate,
-  1, //2,
+  2,
   NULL
 };
 
@@ -295,6 +295,17 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
   return;
 }
 
+/*
+ * Handles the USB driver global events.
+ */
+static void sof_handler(USBDriver *usbp) {
+
+  (void)usbp;
+
+  osalSysLockFromISR();
+  sduSOFHookI(&SDU1);
+  osalSysUnlockFromISR();
+}
 
 
 /*
@@ -304,7 +315,7 @@ const USBConfig usbcfg = {
   usb_event,
   get_descriptor,
   sduRequestsHook,
-  NULL
+  sof_handler
 };
 
 /*

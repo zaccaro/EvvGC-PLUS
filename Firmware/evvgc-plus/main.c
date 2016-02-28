@@ -22,11 +22,12 @@
 #include "pwmio.h"
 #include "misc.h"
 #include "telemetry.h"
-#include "eeprom.h"
 #include "mavlink_handler.h"
 
+#include "chprintf.h"
+
 /* Telemetry operation time out in milliseconds. */
-#define TELEMETRY_SLEEP_MS      20
+#define TELEMETRY_SLEEP_MS      10
 
 #define MPU6050_LOW_DETECTED    0x00000001
 #define EEPROM_24C02_DETECTED   0x00000004
@@ -50,6 +51,14 @@ uint8_t g_streamDataID = 0;
 uint8_t g_streamIdx = 0;
 /* LED B flash req */
 bool led_b = false;
+
+
+
+char buf[5];
+static float radVal = 0.01;
+static float pos = 0.;
+static float offset = 0.;
+static int8_t power = 10;
 
 /**
  * Local variables
@@ -132,7 +141,7 @@ static THD_FUNCTION(BlinkerThread_A,arg) {
     } else {
       time = serusbcfg.usbp->state == USB_ACTIVE ? 250 : 500;
     }
-    palTogglePad(GPIOB, GPIOB_LED_A);
+    palTogglePad(GPIOB, GPIOB_LED_1);
     chThdSleepMilliseconds(time);
   }
   /* This point may be reached if shut down is requested. */
@@ -148,9 +157,9 @@ static THD_FUNCTION(BlinkerThread_B,arg) {
   systime_t time = 20;
   while (!chThdShouldTerminateX()) {
     if (led_b) {
-    palTogglePad(GPIOA, GPIOA_LED_B);
+    palTogglePad(GPIOB, GPIOB_LED_0);
     }
-    else {palClearPad(GPIOA, GPIOA_LED_B);}
+    else {palClearPad(GPIOB, GPIOB_LED_0);}
     chThdSleepMilliseconds(time);
   }
   /* This point may be reached if shut down is requested. */
@@ -238,9 +247,45 @@ static THD_FUNCTION(MavlinkHandler,arg) {
     systime_t time;
     time = chVTGetSystemTime();
 
-    handleStream();
-    readMavlinkChannel();
+    //handleStream();
+    //readMavlinkChannel();
+	/*pos += radVal;
 
+	circularVar(pos,-M_PI,M_PI);
+	//pwmOutputCmdTo3PhasePWM(pos, power, 1);
+	  //pwmOutputUpdatePitch();
+	  //pwmOutputUpdateRoll();
+	  //pwmOutputUpdateYaw();
+	int len = sdAsynchronousRead(&SD4, buf, 5);
+	if (len > 0)
+	{
+		if (buf[0] == 's'){
+			radVal += 0.001;
+		}else if(buf[0] == 'a'){
+			radVal -= 0.001;
+		}else if (buf[0] == 'f'){
+			radVal += 0.01;
+		}else if(buf[0] == 'd'){
+			radVal -= 0.01;
+		}else if (buf[0] == 'h'){
+			radVal += 0.0001;
+		}else if(buf[0] == 'g'){
+			radVal -= 0.0001;
+		}else if (buf[0] == 'w'){
+			power += 2;
+		}else if(buf[0] == 'q'){
+			power -= 2;
+		}else if (buf[0] == 'x'){
+			offset += 0.01;
+		}else if(buf[0] == 'z'){
+			offset -= 0.01;
+		}
+
+		radVal = constrain(radVal,-M_PI,M_PI);
+		power = constrain(power,0,100);
+		offset = constrain(offset,0.,1.);
+
+	}*/
     chThdSleepUntil(time += MS2ST(1000/MAX_STREAM_RATE_HZ));  //Max stream rate
   }
   /* This point may be reached if shut down is requested. */
@@ -257,6 +302,16 @@ int main(void) {
   thread_t *tpPoller   = NULL;
   thread_t *tpAttitude = NULL;
   thread_t *tpMavlink  = NULL;
+
+  /*char buf[64];
+  char zero = '0';
+  char a = 'a';*/
+	/*Serial.write(27);       // ESC command
+	Serial.print("[2J");    // clear screen command
+	Serial.write(27);
+	Serial.print("[H");     // cursor to home command*/
+
+  //char clearTerminal[] = {27,'[','2','J',27,'[','H',0};
 
   /* System initializations.
    * - HAL initialization, this also initializes the configured device drivers
@@ -279,8 +334,8 @@ int main(void) {
   usbStop(serusbcfg.usbp);
   usbDisconnectBus(serusbcfg.usbp);
   chThdSleepMilliseconds(500);
-  usbConnectBus(serusbcfg.usbp);
   usbStart(serusbcfg.usbp, &usbcfg);
+  usbConnectBus(serusbcfg.usbp);
 
   /* Activates the serial driver 4 using the driver's default configuration. */
   sdStart(&SD4, NULL);
@@ -298,21 +353,21 @@ int main(void) {
      WARNING! If MPU6050 sensor is not connected to the I2C bus, there
      aren't pull-up resistors on SDA and SCL lines, therefore it is
      impossible to communicate with EEPROM without the sensor connected. */
-  if (eepromLoadSettings()) {
-    g_boardStatus |= EEPROM_24C02_DETECTED;
-  }
+  //if (eepromLoadSettings()) {
+  //  g_boardStatus |= EEPROM_24C02_DETECTED;
+  //}
 
   /* Initializes the MPU6050 sensor1. */
   if (mpu6050Init(g_IMU1.addr)) {
     g_boardStatus |= MPU6050_LOW_DETECTED;
     g_boardStatus |= IMU1_CALIBRATE_GYRO;
   }
-
+  chBSemObjectInit(&bsemStreamReady, TRUE);
   if (g_boardStatus & MPU6050_LOW_DETECTED) {
     /* Creates a taken binary semaphore. */
     chBSemObjectInit(&bsemIMU1DataReady, TRUE);
     /* Creates a taken binary semaphore. */
-    chBSemObjectInit(&bsemStreamReady, TRUE);
+    //chBSemObjectInit(&bsemStreamReady, TRUE);
 
     /* Creates the MPU6050 polling thread and attitude calculation thread. */
     tpPoller = chThdCreateStatic(waPollMPU6050Thread, sizeof(waPollMPU6050Thread),
@@ -324,7 +379,7 @@ int main(void) {
     pwmOutputStart();
 
     /* Starts ADC and ICU input drivers. */
-    mixedInputStart();
+    //mixedInputStart();
   }
 
   g_chnp = (BaseChannel *)&SDU1; //Default to USB for GUI
@@ -341,9 +396,17 @@ int main(void) {
 
   /* Normal main() thread activity. */
   while (g_runMain) {
-    if ((g_boardStatus & EEPROM_24C02_DETECTED) && eepromIsDataLeft()) {
-      eepromContinueSaving();
-    }
+    ///if ((g_boardStatus & EEPROM_24C02_DETECTED) && eepromIsDataLeft()) {
+    //  eepromContinueSaving();
+    //}
+
+	/*sdAsynchronousWrite(&SD4, (uint8_t *) clearTerminal, strlen(clearTerminal));
+	int len = chsnprintf(buf, 64, 	"vel: %.4f\n\r"
+								"power: %u\n\r"
+								"offset: %.3f\n\r"
+								"pos: %.3f\n\r", radVal, power, offset, (pos*360)/(2*M_PI)+180);
+	sdAsynchronousWrite(&SD4, (uint8_t *) buf, len);*/
+
     telemetryReadSerialData();
     /* Process data stream if ready. */
     if ((g_chnp == (BaseChannel *)&SDU1) && /* USB only; */
@@ -371,7 +434,7 @@ int main(void) {
     chThdWait(tpBlinker_B);       /* Waiting for the actual termination.      */
   }
 
-  mixedInputStop();             /* Stopping mixed input devices.            */
+  //mixedInputStop();             /* Stopping mixed input devices.            */
   pwmOutputStop();              /* Stopping pwm output devices.             */
   i2cStop(&I2CD2);              /* Stopping I2C2 device.                    */
   sdStop(&SD4);                 /* Stopping serial port 4.                  */

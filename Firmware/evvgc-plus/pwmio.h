@@ -93,6 +93,10 @@ extern "C" {
   void mixedInputStart(void);
   void mixedInputStop(void);
   void mixedInputSettingsUpdate(const PMixedInputStruct pNewSettings);
+  /*void pwmOutputCmdTo3PhasePWM(float cmd, uint8_t power, uint8_t thi);
+  void pwmOutputUpdatePitch(void);
+  void pwmOutputUpdateRoll(void);
+  void pwmOutputUpdateYaw(void);*/
 #ifdef __cplusplus
 }
 #endif

@@ -5,6 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
+  #USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
   USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
 endif
 
@@ -84,9 +85,9 @@ endif
 
 # Define project name here
 PROJECT = evvgc_plus
-CHIBIOS = ../../../../chibios30
-CHIBIOS_CONTRIB = $(CHIBIOS)/../ChibiOS-Contrib
-BOARD = ../boards/EVVGC_V1.X
+CHIBIOS = ../../../../chibios161
+CHIBIOS_CONTRIB = $(CHIBIOS)/community
+BOARD = ../../../../boards/EVVGC_V1.X
 # Imported source files and paths
 
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f1xx.mk
@@ -117,7 +118,6 @@ CSRC = $(STARTUPSRC) \
        $(BOARDSRC) \
        $(TESTSRC) \
        attitude.c \
-       eeprom.c \
        main.c \
        misc.c \
        mpu6050.c \
@@ -155,7 +155,8 @@ ASMSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
 INCDIR = $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
-         $(CHIBIOS)/os/various  mavlink/common
+         $(CHIBIOS)/os/various  mavlink/common \
+         $(CHIBIOS)/os/hal/lib/streams
 
 #
 # Project, sources and paths
@@ -227,7 +228,7 @@ DLIBS =
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS =
+UDEFS = -DCHPRINTF_USE_FLOAT=1
 
 # Define ASM defines here
 UADEFS =

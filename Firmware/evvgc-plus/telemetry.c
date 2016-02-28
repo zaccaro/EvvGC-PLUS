@@ -18,7 +18,6 @@
 
 #include "mpu6050.h"
 #include "pwmio.h"
-#include "eeprom.h"
 #include "misc.h"
 #include "attitude.h"
 #include "usbcfg.h"
@@ -161,7 +160,7 @@ static void telemetryProcessCommand(const PMessage pMsg) {
     break;
   case 'I': /* Reads new mixed input settings; */
     if ((pMsg->size - TELEMETRY_MSG_SVC_SIZE) == sizeof(g_mixedInput)) {
-      mixedInputSettingsUpdate((PMixedInputStruct)pMsg->data);
+      //mixedInputSettingsUpdate((PMixedInputStruct)pMsg->data);
       telemetryPositiveResponse(pMsg);
     } else {
       telemetryNegativeResponse(pMsg);
@@ -211,11 +210,11 @@ static void telemetryProcessCommand(const PMessage pMsg) {
     pMsg->crc  = telemetryGetCRC32Checksum(pMsg);
     break;
   case 'c': /* Saves settings to EEPROM; */
-    if (eepromSaveSettings()) {
-      telemetryPositiveResponse(pMsg);
-    } else {
-      telemetryNegativeResponse(pMsg);
-    }
+    //if (eepromSaveSettings()) {
+    //  telemetryPositiveResponse(pMsg);
+    //} else {
+    //  telemetryNegativeResponse(pMsg);
+    //}
     break;
   case 'd': /* Outputs sensor settings; */
     /* Clean data buffer for zero-padded crc32 checksum calculation. */
@@ -365,11 +364,12 @@ void telemetryReadSerialData(void) {
   size_t bytesAvailable = chIQGetFullI(&((SerialDriver *)g_chnp)->iqueue);
   osalSysUnlock();
   led_b = false;
-
+  //const uint8_t str[] = {"hola"};
   while (bytesAvailable) {
     if (bytesAvailable >= bytesRequired) {
       if (bytesRequired > 0) {
 //        palTogglePad(GPIOA, GPIOA_LED_B);
+    	//chnWrite(g_chnp, str, 4);
         led_b = true;
         chnRead(g_chnp, msgPos, bytesRequired);
         msgPos += bytesRequired;
