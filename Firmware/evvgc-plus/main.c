@@ -24,8 +24,6 @@
 #include "telemetry.h"
 #include "mavlink_handler.h"
 
-#include "chprintf.h"
-
 /* Telemetry operation time out in milliseconds. */
 #define TELEMETRY_SLEEP_MS      10
 
@@ -51,14 +49,6 @@ uint8_t g_streamDataID = 0;
 uint8_t g_streamIdx = 0;
 /* LED B flash req */
 bool led_b = false;
-
-
-
-char buf[5];
-static float radVal = 0.01;
-static float pos = 0.;
-static float offset = 0.;
-static int8_t power = 10;
 
 /**
  * Local variables
@@ -247,45 +237,9 @@ static THD_FUNCTION(MavlinkHandler,arg) {
     systime_t time;
     time = chVTGetSystemTime();
 
-    //handleStream();
-    //readMavlinkChannel();
-	/*pos += radVal;
+    handleStream();
+    readMavlinkChannel();
 
-	circularVar(pos,-M_PI,M_PI);
-	//pwmOutputCmdTo3PhasePWM(pos, power, 1);
-	  //pwmOutputUpdatePitch();
-	  //pwmOutputUpdateRoll();
-	  //pwmOutputUpdateYaw();
-	int len = sdAsynchronousRead(&SD4, buf, 5);
-	if (len > 0)
-	{
-		if (buf[0] == 's'){
-			radVal += 0.001;
-		}else if(buf[0] == 'a'){
-			radVal -= 0.001;
-		}else if (buf[0] == 'f'){
-			radVal += 0.01;
-		}else if(buf[0] == 'd'){
-			radVal -= 0.01;
-		}else if (buf[0] == 'h'){
-			radVal += 0.0001;
-		}else if(buf[0] == 'g'){
-			radVal -= 0.0001;
-		}else if (buf[0] == 'w'){
-			power += 2;
-		}else if(buf[0] == 'q'){
-			power -= 2;
-		}else if (buf[0] == 'x'){
-			offset += 0.01;
-		}else if(buf[0] == 'z'){
-			offset -= 0.01;
-		}
-
-		radVal = constrain(radVal,-M_PI,M_PI);
-		power = constrain(power,0,100);
-		offset = constrain(offset,0.,1.);
-
-	}*/
     chThdSleepUntil(time += MS2ST(1000/MAX_STREAM_RATE_HZ));  //Max stream rate
   }
   /* This point may be reached if shut down is requested. */
@@ -302,16 +256,6 @@ int main(void) {
   thread_t *tpPoller   = NULL;
   thread_t *tpAttitude = NULL;
   thread_t *tpMavlink  = NULL;
-
-  /*char buf[64];
-  char zero = '0';
-  char a = 'a';*/
-	/*Serial.write(27);       // ESC command
-	Serial.print("[2J");    // clear screen command
-	Serial.write(27);
-	Serial.print("[H");     // cursor to home command*/
-
-  //char clearTerminal[] = {27,'[','2','J',27,'[','H',0};
 
   /* System initializations.
    * - HAL initialization, this also initializes the configured device drivers
@@ -399,14 +343,6 @@ int main(void) {
     ///if ((g_boardStatus & EEPROM_24C02_DETECTED) && eepromIsDataLeft()) {
     //  eepromContinueSaving();
     //}
-
-	/*sdAsynchronousWrite(&SD4, (uint8_t *) clearTerminal, strlen(clearTerminal));
-	int len = chsnprintf(buf, 64, 	"vel: %.4f\n\r"
-								"power: %u\n\r"
-								"offset: %.3f\n\r"
-								"pos: %.3f\n\r", radVal, power, offset, (pos*360)/(2*M_PI)+180);
-	sdAsynchronousWrite(&SD4, (uint8_t *) buf, len);*/
-
     telemetryReadSerialData();
     /* Process data stream if ready. */
     if ((g_chnp == (BaseChannel *)&SDU1) && /* USB only; */

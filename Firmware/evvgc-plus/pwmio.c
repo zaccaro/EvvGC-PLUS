@@ -361,7 +361,46 @@ static void adccb(ADCDriver *adcp, adcsample_t *buffer, size_t n) {
 //  }
 //}
 
+/**
+ * @brief  Callback function for input capture unit.
+ * @param  eicup - pointer to the input capture driver.
+ * @param  channel - input capture channel triggering the callback.
+ * @return none.
+ */
 
+/**
+ * @brief  Calculates value for DTG (dead-time generator) bits of BDTR register.
+ * @param  id - dead-time value ID.
+ * @return value for DTG bits.
+ */
+#if STM32_PWM_USE_ADVANCED
+static uint32_t pwmOutputGetBDTRDeadTime(const uint8_t id) {
+  uint32_t bdtr_dtg;
+  switch (id) {
+  case PWM_OUT_DT750NS: /* DT = 54 / 72 = 0.75us */
+    bdtr_dtg = STM32_TIM_BDTR_DTG(BDTR_DTG_MUL1 | (BDTR_DTG_MSK1 & 0x36));
+    break;
+  case PWM_OUT_DT1000NS: /* DT = 72 / 72 = 1us */
+    bdtr_dtg = STM32_TIM_BDTR_DTG(BDTR_DTG_MUL1 | (BDTR_DTG_MSK1 & 0x48));
+    break;
+  case PWM_OUT_DT2000NS: /* DT = (64 + 8) * 2 / 72 = 2us */
+    bdtr_dtg = STM32_TIM_BDTR_DTG(BDTR_DTG_MUL2 | (BDTR_DTG_MSK2 & 0x08));
+    break;
+  case PWM_OUT_DT3000NS: /* DT = (64 + 44) * 2 / 72 = 3us */
+    bdtr_dtg = STM32_TIM_BDTR_DTG(BDTR_DTG_MUL2 | (BDTR_DTG_MSK2 & 0x2C));
+    break;
+  case PWM_OUT_DT4000NS: /* DT = (32 + 4) * 8 / 72 = 4us */
+    bdtr_dtg = STM32_TIM_BDTR_DTG(BDTR_DTG_MUL8 | (BDTR_DTG_MSK8 & 0x04));
+    break;
+  case PWM_OUT_DT5000NS: /* DT = (32 + 13) * 8 / 72 = 5us */
+    bdtr_dtg = STM32_TIM_BDTR_DTG(BDTR_DTG_MUL8 | (BDTR_DTG_MSK8 & 0x0D));
+    break;
+  default: /* Apply the longest dead time. DT = (32 + 13) * 8 / 72 = 5us */
+    bdtr_dtg = STM32_TIM_BDTR_DTG(BDTR_DTG_MUL8 | (BDTR_DTG_MSK8 & 0x0D));
+  }
+  return bdtr_dtg;
+}
+#endif
 
 /**
  * @brief  Disables PWM on roll driver.
@@ -491,6 +530,12 @@ static void pwmOutputUpdateYaw(void) {
   PWMD4.tim->CR1 |= STM32_TIM_CR1_UDIS;
   chSysUnlock();
 
+  /**
+   * Update shadow registers.
+   * Apply dead-time to Yaw PWM:
+   */
+  /* Check if motor direction is reversed. */
+
   /* Check if motor direction is reversed. */
   if (g_pwmOutput[PWM_OUT_YAW].flags & PWM_OUT_REV_FLAG) {
 	  PWMD4.tim->CCR[3] = pwm3PhaseDrv[1];
@@ -564,6 +609,7 @@ void pwmOutputStart(void) {
 void pwmOutputStop(void) {
   pwmOutputDisableAll();
   pwmStop(&PWMD1);
+  //pwmStop(&PWMD8);
   pwmStop(&PWMD2);
   pwmStop(&PWMD3);
   pwmStop(&PWMD4);

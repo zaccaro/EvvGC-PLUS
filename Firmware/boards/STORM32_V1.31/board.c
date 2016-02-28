@@ -48,15 +48,7 @@ void __early_init(void) {
  */
 void boardInit(void) {
   /*
-   * Several I/O pins are re-mapped:
-   *   TIM2 partial remap to (CH1/ETR/PA15, CH2/PB3, CH3/PA2, CH4/PA3);
-   *   TIM3 partial remap to (CH1/PB4, CH2/PB5, CH3/PB0, CH4/PB1);
    *   JTAG-DP Disabled and SW-DP Enabled.
    */
-	  //AFIO->MAPR |= AFIO_MAPR_TIM2_REMAP_PARTIALREMAP1 |
-	  //              AFIO_MAPR_TIM3_REMAP_PARTIALREMAP |
-	  //             AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
-	  //
-	  //AFIO->MAPR |= AFIO_MAPR_TIM2_REMAP_FULLREMAP | AFIO_MAPR_TIM3_REMAP_FULLREMAP | AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
-	  AFIO->MAPR |= AFIO_MAPR_TIM3_REMAP_NOREMAP | AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
+   AFIO->MAPR |= AFIO_MAPR_TIM3_REMAP_NOREMAP | AFIO_MAPR_SWJ_CFG_JTAGDISABLE;
 }

@@ -24,8 +24,8 @@
 /*
  * Board identifier.
  */
-#define BOARD_EVVGC_V1_X
-#define BOARD_NAME              "EvvGC v1.x"
+#define BOARD_STORM32_V1_31
+#define BOARD_NAME              "Storm32 v1.31"
 
 /*
  * Board frequencies.

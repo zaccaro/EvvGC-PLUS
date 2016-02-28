@@ -364,12 +364,10 @@ void telemetryReadSerialData(void) {
   size_t bytesAvailable = chIQGetFullI(&((SerialDriver *)g_chnp)->iqueue);
   osalSysUnlock();
   led_b = false;
-  //const uint8_t str[] = {"hola"};
+
   while (bytesAvailable) {
     if (bytesAvailable >= bytesRequired) {
       if (bytesRequired > 0) {
-//        palTogglePad(GPIOA, GPIOA_LED_B);
-    	//chnWrite(g_chnp, str, 4);
         led_b = true;
         chnRead(g_chnp, msgPos, bytesRequired);
         msgPos += bytesRequired;
