@@ -15,7 +15,7 @@
 */
 
 #include "hal.h"
-
+#include "board.h"
 #include "usbcfg.h"
 #include "mpu6050.h"
 #include "attitude.h"
@@ -132,7 +132,7 @@ static THD_FUNCTION(BlinkerThread_A,arg) {
     } else {
       time = serusbcfg.usbp->state == USB_ACTIVE ? 250 : 500;
     }
-    palTogglePad(GPIOB, GPIOB_LED_A);
+    palToggleLedGreen();
     chThdSleepMilliseconds(time);
   }
   /* This point may be reached if shut down is requested. */
@@ -148,9 +148,9 @@ static THD_FUNCTION(BlinkerThread_B,arg) {
   systime_t time = 20;
   while (!chThdShouldTerminateX()) {
     if (led_b) {
-    palTogglePad(GPIOA, GPIOA_LED_B);
+    palToggleLedRed();
     }
-    else {palClearPad(GPIOA, GPIOA_LED_B);}
+    else {palToggleLedRed();}
     chThdSleepMilliseconds(time);
   }
   /* This point may be reached if shut down is requested. */
@@ -341,9 +341,11 @@ int main(void) {
 
   /* Normal main() thread activity. */
   while (g_runMain) {
+	#ifdef BOARD_EVVGC_V1_X
     if ((g_boardStatus & EEPROM_24C02_DETECTED) && eepromIsDataLeft()) {
       eepromContinueSaving();
     }
+	#endif
     telemetryReadSerialData();
     /* Process data stream if ready. */
     if ((g_chnp == (BaseChannel *)&SDU1) && /* USB only; */

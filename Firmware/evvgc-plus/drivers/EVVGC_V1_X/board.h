@@ -37,7 +37,8 @@
  * MCU type, supported types are defined in ./chibios_2.6.7/hal/platforms/hal_lld.h.
  */
 
-#define STM32F10X_HD
+//#define STM32F10X_HD
+#define STM32F103xE
 
 /*
  * IO pins assignments.
@@ -174,6 +175,14 @@
 #define usb_lld_disconnect_bus(usbp) { \
   palSetPadMode(GPIOA, GPIOA_USB_DP, PAL_MODE_OUTPUT_PUSHPULL); \
   palClearPad(GPIOA, GPIOA_USB_DP); \
+}
+
+#define palToggleLedGreen() { \
+  palTogglePad(GPIOB, GPIOB_LED_A); \
+}
+
+#define palToggleLedRed() { \
+  palTogglePad(GPIOA, GPIOA_LED_B); \
 }
 
 #if !defined(_FROM_ASM_)

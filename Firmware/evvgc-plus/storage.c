@@ -74,7 +74,7 @@ uint8_t loadSettings(void) {
   } else {
     pidSettingsUpdate(paramsData.pidSettings);
     pwmOutputSettingsUpdate(paramsData.pwmOutput);
-    //mixedInputSettingsUpdate(paramsData.mixedInput);
+    mixedInputSettingsUpdate(paramsData.mixedInput);
     inputModeSettingsUpdate(paramsData.modeSettings);
     sensorSettingsUpdate(paramsData.sensorSettings);
     cfSettingsUpdate(paramsData.cfSettings);

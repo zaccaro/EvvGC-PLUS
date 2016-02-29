@@ -84,9 +84,10 @@ endif
 
 # Define project name here
 PROJECT = evvgc_plus
-CHIBIOS = ../../../../chibios30
-CHIBIOS_CONTRIB = $(CHIBIOS)/../ChibiOS-Contrib
-BOARD = ../boards/EVVGC_V1.X
+CHIBIOS = ../../../../chibios161
+CHIBIOS_CONTRIB = $(CHIBIOS)/community
+BOARD = drivers/EVVGC_V1_X
+#BOARD = drivers/STORM32_V1_X
 # Imported source files and paths
 
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f1xx.mk
@@ -118,11 +119,9 @@ CSRC = $(STARTUPSRC) \
        $(TESTSRC) \
        flash/flash.c \
        attitude.c \
-       eeprom.c \
        main.c \
        misc.c \
        mpu6050.c \
-       pwmio.c \
        telemetry.c \
        usbcfg.c \
        mavlink_handler.c \
