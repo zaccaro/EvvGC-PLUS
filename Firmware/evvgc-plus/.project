@@ -26,9 +26,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>EVVGC_V1.X</name>
+			<name>BOARDS</name>
 			<type>2</type>
-			<locationURI>BOARDS/EVVGC_V1.X</locationURI>
+			<locationURI>BOARDS</locationURI>
 		</link>
 		<link>
 			<name>os</name>
@@ -39,7 +39,7 @@
 	<variableList>
 		<variable>
 			<name>BOARDS</name>
-			<value>$%7BPARENT-4-PROJECT_LOC%7D/boards</value>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/boards</value>
 		</variable>
 		<variable>
 			<name>CHIBIOS</name>
