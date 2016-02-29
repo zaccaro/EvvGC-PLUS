@@ -282,9 +282,8 @@ int flashWriteIfNeeded(flashaddr_t address, const char* buffer, size_t size)
 	return err;
 
 }
-int flashWrite(flashaddr_t src_address, const char* buffer, size_t size)
+int flashWrite(flashaddr_t address, const char* buffer, size_t size)
 {
-	volatile flashdata_t* address = src_address;
 
     /* Unlock flash for write access */
     if(flashUnlock() == CH_FAILED)
@@ -302,10 +301,10 @@ int flashWrite(flashaddr_t src_address, const char* buffer, size_t size)
 
 
         /* Align the flash address correctly */
-        flashaddr_t alignedFlashAddress = address - alignOffset;
+    	volatile flashdata_t* alignedFlashAddress = (flashdata_t*)address - alignOffset;
 
         /* Read already present data */
-        flashdata_t tmp = *(volatile flashdata_t*)alignedFlashAddress;
+        flashdata_t tmp = *alignedFlashAddress;
 
         /* Compute how much bytes one must update in the data read */
         size_t chunkSize = sizeof(flashdata_t) - alignOffset;
@@ -330,8 +329,8 @@ int flashWrite(flashaddr_t src_address, const char* buffer, size_t size)
      * copied requires special treatment. */
     while (size >= sizeof(flashdata_t))
     {
-        flashWriteData(address, *(const flashdata_t*)buffer);
-        address = (size_t)address + sizeof(flashdata_t);
+        flashWriteData((volatile flashdata_t*)address, *(const flashdata_t*)buffer);
+        address += sizeof(flashdata_t);
         buffer += sizeof(flashdata_t);
         size -= sizeof(flashdata_t);
     }
@@ -345,7 +344,7 @@ int flashWrite(flashaddr_t src_address, const char* buffer, size_t size)
     {
         flashdata_t tmp = *(volatile flashdata_t*)address;
         memcpy(&tmp, buffer, size);
-        flashWriteData(address, tmp);
+        flashWriteData((volatile flashdata_t*)address, tmp);
     }
 
     /* Lock flash again */

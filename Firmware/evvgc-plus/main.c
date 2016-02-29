@@ -26,7 +26,7 @@
 #include "storage.h"
 
 /* Telemetry operation time out in milliseconds. */
-#define TELEMETRY_SLEEP_MS      20
+#define TELEMETRY_SLEEP_MS      10
 
 #define MPU6050_LOW_DETECTED    0x00000001
 #define EEPROM_24C02_DETECTED   0x00000004
@@ -279,8 +279,8 @@ int main(void) {
   usbStop(serusbcfg.usbp);
   usbDisconnectBus(serusbcfg.usbp);
   chThdSleepMilliseconds(500);
-  usbConnectBus(serusbcfg.usbp);
   usbStart(serusbcfg.usbp, &usbcfg);
+  usbConnectBus(serusbcfg.usbp);
 
   /* Activates the serial driver 4 using the driver's default configuration. */
   sdStart(&SD4, NULL);

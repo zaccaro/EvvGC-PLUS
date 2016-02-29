@@ -86,8 +86,8 @@ endif
 PROJECT = evvgc_plus
 CHIBIOS = ../../../../chibios161
 CHIBIOS_CONTRIB = $(CHIBIOS)/community
-BOARD = drivers/EVVGC_V1_X
-#BOARD = drivers/STORM32_V1_X
+#BOARD = drivers/EVVGC_V1_X
+BOARD = drivers/STORM32_V1_X
 # Imported source files and paths
 
 include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f1xx.mk
