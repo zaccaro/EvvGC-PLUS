@@ -293,13 +293,9 @@ int main(void) {
   /* Initialize IMU data structure. */
   imuStructureInit(&g_IMU1, FALSE); // IMU1 on low address.
 
-  /* Loads settings from external EEPROM chip.
-     WARNING! If MPU6050 sensor is not connected to the I2C bus, there
-     aren't pull-up resistors on SDA and SCL lines, therefore it is
-     impossible to communicate with EEPROM without the sensor connected. */
-  //if (eepromLoadSettings()) {
-  //  g_boardStatus |= EEPROM_24C02_DETECTED;
-  //}
+  loadSettings();
+  g_boardStatus |= EEPROM_24C02_DETECTED;
+
 
   /* Initializes the MPU6050 sensor1. */
   if (mpu6050Init(g_IMU1.addr)) {

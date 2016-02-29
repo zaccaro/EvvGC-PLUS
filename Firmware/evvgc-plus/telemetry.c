@@ -22,6 +22,7 @@
 #include "attitude.h"
 #include "usbcfg.h"
 #include "telemetry.h"
+#include "storage.h"
 
 /* C libraries: */
 #include <string.h>
@@ -209,12 +210,12 @@ static void telemetryProcessCommand(const PMessage pMsg) {
     pMsg->size = sizeof(g_boardStatus) + TELEMETRY_MSG_SVC_SIZE;
     pMsg->crc  = telemetryGetCRC32Checksum(pMsg);
     break;
-  case 'c': /* Saves settings to EEPROM; */
-    //if (eepromSaveSettings()) {
-    //  telemetryPositiveResponse(pMsg);
-    //} else {
-    //  telemetryNegativeResponse(pMsg);
-    //}
+  case 'c': /* Saves settings to FLASH; */
+    if (saveSettings()==SUCCESS) {
+      telemetryPositiveResponse(pMsg);
+    } else {
+      telemetryNegativeResponse(pMsg);
+    }
     break;
   case 'd': /* Outputs sensor settings; */
     /* Clean data buffer for zero-padded crc32 checksum calculation. */

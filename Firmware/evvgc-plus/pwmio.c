@@ -411,8 +411,9 @@ static void pwmOutputDisableRoll(void) {
   PWMD2.tim->CR1 |= STM32_TIM_CR1_UDIS;
   PWMD3.tim->CR1 |= STM32_TIM_CR1_UDIS;
 
-  memset((void *)PWMD2.tim->CCR, 0, sizeof(uint32_t) * 3);
-  memset((void *)PWMD3.tim->CCR, 0, sizeof(uint32_t) * 3);
+  PWMD3.tim->CCR[0] = 0;
+  PWMD2.tim->CCR[3] = 0;
+  PWMD2.tim->CCR[2] = 0;
 
   /* Enable update event. */
   PWMD2.tim->CR1 &= ~STM32_TIM_CR1_UDIS;
@@ -427,7 +428,9 @@ static void pwmOutputDisablePitch(void) {
   /* Disable update event. */
   PWMD3.tim->CR1 |= STM32_TIM_CR1_UDIS;
 
-  memset((void *)PWMD3.tim->CCR, 0, sizeof(uint32_t) * 3);
+  PWMD3.tim->CCR[3] = 0;
+  PWMD3.tim->CCR[2] = 0;
+  PWMD3.tim->CCR[1] = 0;
 
   /* Enable update event. */
   PWMD3.tim->CR1 &= ~STM32_TIM_CR1_UDIS;
@@ -444,8 +447,9 @@ static void pwmOutputDisableYaw(void) {
   PWMD4.tim->CR1 |= STM32_TIM_CR1_UDIS;
   chSysUnlock();
 
-  //memset((void *)PWMD2.tim->CCR, 0, sizeof(uint32_t) * 3);
-  //memset((void *)PWMD4.tim->CCR, 0, sizeof(uint32_t) * 3);
+  PWMD4.tim->CCR[3] = 0;
+  PWMD2.tim->CCR[1] = 0;
+  PWMD4.tim->CCR[2] = 0;
 
   chSysLock();
   /* Enable update event. */
@@ -486,10 +490,10 @@ static void pwmOutputUpdateRoll(void) {
 
   /* Check if motor direction is reversed. */
   if (g_pwmOutput[PWM_OUT_ROLL].flags & PWM_OUT_REV_FLAG) {
-	PWMD3.tim->CCR[3] = pwm3PhaseDrv[1];
+	PWMD3.tim->CCR[0] = pwm3PhaseDrv[1];
 	PWMD2.tim->CCR[3] = pwm3PhaseDrv[0];
   } else {
-	PWMD3.tim->CCR[3] = pwm3PhaseDrv[0];
+	PWMD3.tim->CCR[0] = pwm3PhaseDrv[0];
 	PWMD2.tim->CCR[3] = pwm3PhaseDrv[1];
   }
   PWMD2.tim->CCR[2] = pwm3PhaseDrv[2];
@@ -508,13 +512,13 @@ static void pwmOutputUpdatePitch(void) {
 
   /* Check if motor direction is reversed. */
   if (g_pwmOutput[PWM_OUT_PITCH].flags & PWM_OUT_REV_FLAG) {
-    PWMD3.tim->CCR[0] = pwm3PhaseDrv[1];
-    PWMD3.tim->CCR[1] = pwm3PhaseDrv[0];
+    PWMD3.tim->CCR[3] = pwm3PhaseDrv[1];
+    PWMD3.tim->CCR[2] = pwm3PhaseDrv[0];
   } else {
-    PWMD3.tim->CCR[0] = pwm3PhaseDrv[0];
-    PWMD3.tim->CCR[1] = pwm3PhaseDrv[1];
+    PWMD3.tim->CCR[3] = pwm3PhaseDrv[0];
+    PWMD3.tim->CCR[2] = pwm3PhaseDrv[1];
   }
-  PWMD3.tim->CCR[2] = pwm3PhaseDrv[2];
+  PWMD3.tim->CCR[1] = pwm3PhaseDrv[2];
 
   /* Enable update event. */
   PWMD3.tim->CR1 &= ~STM32_TIM_CR1_UDIS;
