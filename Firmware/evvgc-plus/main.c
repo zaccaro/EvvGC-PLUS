@@ -22,8 +22,8 @@
 #include "pwmio.h"
 #include "misc.h"
 #include "telemetry.h"
-#include "eeprom.h"
 #include "mavlink_handler.h"
+#include "storage.h"
 
 /* Telemetry operation time out in milliseconds. */
 #define TELEMETRY_SLEEP_MS      20
@@ -298,9 +298,9 @@ int main(void) {
      WARNING! If MPU6050 sensor is not connected to the I2C bus, there
      aren't pull-up resistors on SDA and SCL lines, therefore it is
      impossible to communicate with EEPROM without the sensor connected. */
-  if (eepromLoadSettings()) {
-    g_boardStatus |= EEPROM_24C02_DETECTED;
-  }
+
+  loadSettings();
+  g_boardStatus |= EEPROM_24C02_DETECTED;
 
   /* Initializes the MPU6050 sensor1. */
   if (mpu6050Init(g_IMU1.addr)) {

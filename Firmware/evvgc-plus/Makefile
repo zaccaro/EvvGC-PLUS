@@ -116,6 +116,7 @@ CSRC = $(STARTUPSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
        $(TESTSRC) \
+       flash/flash.c \
        attitude.c \
        eeprom.c \
        main.c \
@@ -124,7 +125,8 @@ CSRC = $(STARTUPSRC) \
        pwmio.c \
        telemetry.c \
        usbcfg.c \
-       mavlink_handler.c
+       mavlink_handler.c \
+       storage.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
